@@ -28,8 +28,13 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Input and info //////////////////////////////////////////////////////////
+
     char* imageName = argv[1];
-    int rast, psize;
+    unsigned int psize;
+    float rast;
 
     cout << "\n------------------------------\n---------- Pixelator ---------\n------------------------------\n\n";
 
@@ -39,8 +44,8 @@ int main( int argc, char** argv )
 
     if( argc == 1 || !image.data )
     {
-     printf( "Error -> No image data specified\n " );
-     return -1;
+      printf( "Error -> No image data specified\n " );
+      return -1;
     }
     if( argc > 2 ){ rast = strtol(argv[2], NULL, 10);} else { rast = 16; }// auto rast
     if( argc > 3 ){ psize = strtol(argv[3], NULL, 10);} else { psize = 16; }// auto psize
@@ -56,72 +61,34 @@ int main( int argc, char** argv )
     cout << setw(20) << "Width Step:" <<  image_ipl->widthStep << endl;
     cout << setw(20) << "Image Size:" <<  image_ipl->imageSize << " octets" << endl;
 
-    ////////////////////////////////////////////////////////////////////////////
-    // How it should work //////////////////////////////////////////////////////
-
-    //bilateral_blur();
-    //pixelate();
-    //color_downsampling();
 
     ////////////////////////////////////////////////////////////////////////////
-    // Apply bilateral bluring filter to the image /////////////////////////////
+    // Processing //////////////////////////////////////////////////////////////
+
     Mat image_bilateral_blur = image.clone();
     Mat image_pixelated = image.clone();
     Mat image_256 = image.clone();
-    /*bilateralFilter(image, image_bilateral_blur, 10, 75, 75);*/
+    int b=1, c=1, p=1;
 
-    int x,y,xx,yy;
+    if(b == 1){
+      bilateralFilter(image, image_bilateral_blur, 5, 75, 75);
+    }else{}
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Pixelate the image //////////////////////////////////////////////////////
-    long blue_mean, green_mean, red_mean;
-    int psize2 = psize*psize;
-    for(x=0; x<(image.cols-psize); x += psize){
-      for(y=0; y<(image.rows-psize); y += psize){
+    if(c == 1){
+      colorDownsampling(image_bilateral_blur, image_256, rast);
+    }else{}
 
-        for(xx=0; xx<psize; xx++){// calculate mean value for the group
-          for(yy=0; yy<psize; yy++){
-            Vec3b intensity = image.at<Vec3b>(y+yy, x+xx);
-            blue_mean += intensity.val[0];//B
-            green_mean += intensity.val[1];//G
-            red_mean += intensity.val[2];//R
-          }
-        }
-        Vec3b average;
-        average.val[0] = floor(blue_mean /= (psize2));
-        average.val[1] = floor(green_mean /= (psize2));
-        average.val[2] = floor(red_mean /= (psize2));
-
-        for(xx=0; xx<psize; xx++){// write new color for the group
-          for(yy=0; yy<psize; yy++){
-            image_pixelated.at<Vec3b>(y+yy, x+xx) = average;
-          }
-        }
-
-      }
-    }
+    if(p == 1){
+      pixelate(image_256, image_pixelated, psize);
+    }else{}
 
     ////////////////////////////////////////////////////////////////////////////
-    // Change color possibilities //////////////////////////////////////////////
-
-    for(x=0; x<image.cols; x++){
-      for(y=0; y<image.rows; y++){
-        Vec3b intensity = image_pixelated.at<Vec3b>(y, x);
-
-        intensity.val[0] = rast * floor(intensity.val[0] / rast);//B
-        intensity.val[1] = rast * floor(intensity.val[1] / rast);//G
-        intensity.val[2] = rast * floor(intensity.val[2] / rast);//R
-
-        image_256.at<Vec3b>(y, x) = intensity;
-      }
-    }
+    // Export and clean ////////////////////////////////////////////////////////
 
     string s = "pixelator_";
     string output_name = s + basename(imageName);//extract filename
-    imwrite( output_name , image_256 );//write new image
-    //namedWindow( "image_prime" );
-    //imshow( "image_prime", image_256 );
-    //waitKey(0);
+    imwrite( output_name , image_pixelated );//write new image
+
     cout << "\n";
 
     /*QApplication app(argc, argv);
