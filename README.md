@@ -1,8 +1,8 @@
-#Pixelator
+# Pixelator
 
 This is a small program which can blur and pixelate images to give them a "8bits" appearance.
 
-![alt text](https://github.com/WaspCo/pixelator/master/demo.png)
+![alt text](https://raw.githubusercontent.com/WaspCo/pixelator/master/demo.png)
 
 To do:
 - Support for compressed image format
